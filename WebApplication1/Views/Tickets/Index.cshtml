@@ -1,0 +1,133 @@
+﻿@model IEnumerable<WebApplication1.Models.Ticket>
+@using WebApplication1.Enums
+
+<div class="container-fluid mt-5">
+    <div class="card shadow">
+        <!-- Header section -->
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center px-5">
+            <h3 class="mb-0">Tickets</h3>
+            <div class="position-absolute start-50 translate-middle-x">
+                <button type="button" class="btn btn-light" data-bs-toggle="modal" data-bs-target="#createTicketModal">
+                    <i class="bi bi-plus-lg"></i> New Ticket
+                </button>
+            </div>
+            <!-- Empty div to maintain spacing -->
+            <div style="width: 105px;"></div>
+        </div>
+
+        <!-- Table section -->
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Title</th>
+                            <th>Status</th>
+                            <th>Priority</th>
+                            <th>Category</th>
+                            <th>Created By</th>
+                            <th>Created Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td data-tippy-content="@item.Description">@item.Title</td>
+                                <td><span class="badge bg-@GetStatusColor(item.Status)">@item.Status</span></td>
+                                <td><span class="badge bg-@GetPriorityColor(item.Priority)">@item.Priority</span></td>
+                                <td>@item.Category</td>
+                                <td>@item.CreatedBy?.Email</td>
+                                <td>@item.CreatedDate.ToString("g")</td>
+                                <td>
+                                    <div class="btn-group">
+                                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-info">
+                                            <i class="bi bi-info-circle"></i>
+                                        </a>
+                                        <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-outline-danger">
+                                            <i class="bi bi-trash"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Helper methods -->
+@{
+    string GetStatusColor(TicketStatus status) => status switch
+    {
+        TicketStatus.New => "info",
+        TicketStatus.Open => "primary",
+        TicketStatus.InProgress => "warning",
+        TicketStatus.Resolved => "success",
+        TicketStatus.Closed => "secondary",
+        _ => "secondary"
+    };
+
+    string GetPriorityColor(TicketPriority priority) => priority switch
+    {
+        TicketPriority.Low => "success",
+        TicketPriority.Medium => "warning",
+        TicketPriority.High => "danger",
+        _ => "secondary"
+    };
+}
+
+<!-- Create Ticket Modal -->
+<div class="modal fade" id="createTicketModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Create New Ticket</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="createTicketForm">
+                    @Html.AntiForgeryToken()
+                    <div class="mb-3">
+                        <label for="Title" class="form-label">Title</label>
+                        <input type="text" class="form-control" id="Title" name="Title" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="Description" class="form-label">Description</label>
+                        <textarea class="form-control" id="Description" name="Description" rows="3" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="Priority" class="form-label">Priority</label>
+                        <select class="form-select" id="Priority" name="Priority" required>
+                            @foreach (var priority in Enum.GetValues<TicketPriority>())
+                            {
+                                <option value="@((int)priority)">@priority</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="Category" class="form-label">Category</label>
+                        <input type="text" class="form-control" id="Category" name="Category" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="submitTicket">Create Ticket</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/ticket-modal.js"></script>
+    <script src="~/js/ticket-hover.js"></script>
+    <link href="https://unpkg.com/tippy.js@6/dist/tippy.css" rel="stylesheet" />
+}
+
